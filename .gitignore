@@ -1,0 +1,45 @@
+# Logs & Debugging
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
+# Vercel local state
+.vercel
+
+# Environment Variables & Secrets (CRITICAL SECURITY)
+.env
+.env.*
+!.env.example
+*.local
+
+# Security Keys & Certificates
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+*.pfx
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+performance-visual-check.png
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
