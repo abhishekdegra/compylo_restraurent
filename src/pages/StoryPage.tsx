@@ -3,6 +3,7 @@ import { About } from '../components/About'
 import { Chef } from '../components/Chef'
 import { GastronomyTimeline } from '../components/GastronomyTimeline'
 import { GoldDivider } from '../components/ui/GoldDivider'
+import { SITE_CONFIG } from '../config/site'
 
 export const StoryPage: React.FC = () => {
   return (
@@ -13,7 +14,7 @@ export const StoryPage: React.FC = () => {
           Philosophy &bull; Heritage &bull; Craft
         </span>
         <h1 className="font-cinzel text-4xl sm:text-5xl md:text-6xl font-bold text-[#edebe6] mt-2 mb-4 leading-tight">
-          The Compylo Journey
+          The {SITE_CONFIG.name} Journey
         </h1>
         <GoldDivider className="my-5" />
         <p className="font-serif italic text-base sm:text-lg text-[#a5a8b5] font-light max-w-2xl mx-auto leading-relaxed">
@@ -27,7 +28,7 @@ export const StoryPage: React.FC = () => {
       {/* 2. Executive Chef Julien Valmont */}
       <Chef />
 
-      {/* 3. A Day at Compylo (Horological Gastronomy Timeline) */}
+      {/* 3. Horological Gastronomy Timeline */}
       <GastronomyTimeline />
     </div>
   )

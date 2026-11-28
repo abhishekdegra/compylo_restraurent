@@ -77,16 +77,18 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+const AUTO_THEME_KEY = 'kafeholic_theme_auto'
+const MANUAL_THEME_KEY = 'kafeholic_theme_manual'
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuto, setIsAuto] = useState<boolean>(() => {
-    const saved = localStorage.getItem('compylo_theme_auto')
+    const saved = localStorage.getItem(AUTO_THEME_KEY)
     return saved !== null ? saved === 'true' : true
   })
 
   const [theme, setCurrentTheme] = useState<CircadianTheme>(() => {
-    const savedManual = localStorage.getItem('compylo_theme_manual') as CircadianTheme | null
-    const savedAuto = localStorage.getItem('compylo_theme_auto')
+    const savedManual = localStorage.getItem(MANUAL_THEME_KEY) as CircadianTheme | null
+    const savedAuto = localStorage.getItem(AUTO_THEME_KEY)
     const autoEnabled = savedAuto !== null ? savedAuto === 'true' : true
 
     if (!autoEnabled && savedManual && THEME_DETAILS[savedManual]) {
@@ -127,10 +129,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     if (isAuto) {
-      localStorage.setItem('compylo_theme_auto', 'true')
+      localStorage.setItem(AUTO_THEME_KEY, 'true')
     } else {
-      localStorage.setItem('compylo_theme_auto', 'false')
-      localStorage.setItem('compylo_theme_manual', theme)
+      localStorage.setItem(AUTO_THEME_KEY, 'false')
+      localStorage.setItem(MANUAL_THEME_KEY, theme)
     }
   }, [theme, isAuto])
 

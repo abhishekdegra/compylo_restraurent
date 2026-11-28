@@ -5,10 +5,11 @@
 
 // Digits-only sanitization for phone numbers used in wa.me
 const cleanDigits = (num: string): string => num.replace(/\D/g, '')
+const siteName = import.meta.env.VITE_SITE_NAME || 'Kafeholic'
 
 export const SITE_CONFIG = {
-  name: import.meta.env.VITE_SITE_NAME || 'COMPYLO',
-  legalName: 'COMPYLO Restaurant & Fine Dining',
+  name: siteName,
+  legalName: `${siteName} Restaurant & Fine Dining`,
   
   // WhatsApp Contact (digits only, e.g., 919876543210)
   whatsappNumber: cleanDigits(import.meta.env.VITE_WHATSAPP_NUMBER || '919876543210'),
@@ -16,9 +17,9 @@ export const SITE_CONFIG = {
   // Display contact info
   phoneDisplay: import.meta.env.VITE_CONTACT_PHONE || '+91 98765 43210',
   phoneTel: import.meta.env.VITE_CONTACT_PHONE_TEL || '+919876543210',
-  email: import.meta.env.VITE_CONTACT_EMAIL || 'concierge@compylo-restaurant.com',
+  email: import.meta.env.VITE_CONTACT_EMAIL || 'concierge@kafeholic.example',
   
-  address: "The Compylo Estate, 42 King's Promenade, Diplomatic Enclave, New Delhi",
+  address: `The ${siteName} Estate, 42 King's Promenade, Diplomatic Enclave, New Delhi`,
   
   // Helper to construct secure, sanitized WhatsApp URLs
   buildWhatsAppUrl(messageText: string): string {

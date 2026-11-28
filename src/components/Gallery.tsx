@@ -6,6 +6,7 @@ import { AnimatedSection } from './ui/AnimatedSection'
 import { GoldDivider } from './ui/GoldDivider'
 import { Maximize2, X } from 'lucide-react'
 import { buildResponsiveImageSrcSet } from '../utils/responsiveImage'
+import { SITE_CONFIG } from '../config/site'
 
 export const Gallery: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
@@ -19,7 +20,7 @@ export const Gallery: React.FC = () => {
             Visual Ambiance
           </span>
           <h2 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-bold text-[#edebe6] mt-2 mb-4 tracking-[0.14em] leading-tight">
-            The Compylo Atmosphere
+            The {SITE_CONFIG.name} Atmosphere
           </h2>
           <GoldDivider className="my-5" />
           <p className="font-serif italic text-base sm:text-lg text-[#a5a8b5] font-light max-w-xl mx-auto leading-relaxed mt-4">

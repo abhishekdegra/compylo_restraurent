@@ -4,6 +4,7 @@ import { AnimatedSection } from './ui/AnimatedSection'
 import { GoldDivider } from './ui/GoldDivider'
 import { Clock, ChevronRight, Compass } from 'lucide-react'
 import { buildResponsiveImageSrcSet } from '../utils/responsiveImage'
+import { SITE_CONFIG } from '../config/site'
 
 interface TimelineMoment {
   time: string
@@ -88,7 +89,7 @@ export const GastronomyTimeline: React.FC = () => {
             Horological Gastronomy
           </span>
           <h2 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-bold text-[#edebe6] mt-2 mb-4 tracking-[0.14em] leading-tight">
-            A Day at Compylo
+            A Day at {SITE_CONFIG.name}
           </h2>
           <GoldDivider className="my-5" />
           <p className="font-serif italic text-base sm:text-lg text-[#a5a8b5] font-light max-w-xl mx-auto leading-relaxed mt-4">
@@ -216,7 +217,7 @@ export const GastronomyTimeline: React.FC = () => {
               <div className="pt-4 border-t border-[#d4af37]/20 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-[#8a8d98]">
                   <Compass className="w-4 h-4 text-[#d4af37]" />
-                  <span>Uncompromised Artistry &bull; Daily at Compylo</span>
+                  <span>Uncompromised Artistry &bull; Daily at {SITE_CONFIG.name}</span>
                 </div>
 
                 <button

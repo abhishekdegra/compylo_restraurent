@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { AnimatedSection } from './ui/AnimatedSection'
 import { Award, Star, Quote } from 'lucide-react'
 import { buildResponsiveImageSrcSet } from '../utils/responsiveImage'
+import { SITE_CONFIG } from '../config/site'
 
 export const Chef: React.FC = () => {
   return (
@@ -77,7 +78,7 @@ export const Chef: React.FC = () => {
             </div>
 
             <p className="text-[#a5a8b5] font-sans text-sm md:text-base leading-relaxed font-light">
-              Trained in the classical French tradition under venerable masters in Lyon, Chef Julien spent a decade immersing himself in Kyoto’s reverence for seasonality and charcoal technique before conceptualizing <strong className="text-[#d4af37] font-normal">COMPYLO</strong>.
+              Trained in the classical French tradition under venerable masters in Lyon, Chef Julien spent a decade immersing himself in Kyoto’s reverence for seasonality and charcoal technique before conceptualizing <strong className="text-[#d4af37] font-normal">{SITE_CONFIG.name}</strong>.
             </p>
 
             <p className="text-[#a5a8b5] font-sans text-sm md:text-base leading-relaxed font-light">

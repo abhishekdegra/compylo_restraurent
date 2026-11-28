@@ -1,4 +1,5 @@
 import type { Testimonial } from '../types'
+import { SITE_CONFIG } from '../config/site'
 
 export const TESTIMONIALS: Testimonial[] = [
   {
@@ -6,7 +7,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: 'Antoine Laurent',
     role: 'Senior Food Critic',
     publication: 'Michelin Guide Inspector Review',
-    quote: 'Compylo elevates dining to an immersive theatrical experience. The A5 Miyazaki Wagyu and seven-course tasting menu demonstrate exceptional mastery of temperature, texture, and rare ingredients.',
+    quote: `${SITE_CONFIG.name} elevates dining to an immersive theatrical experience. The A5 Miyazaki Wagyu and seven-course tasting menu demonstrate exceptional mastery of temperature, texture, and rare ingredients.`,
     rating: 5,
     date: 'Autumn Edition',
   },
@@ -15,7 +16,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: 'Sophia Montgomery',
     role: 'Editorial Director',
     publication: 'Gastronome Luxe Magazine',
-    quote: 'The ambiance whispers understated wealth and culinary perfection. The lighting, acoustic comfort, and world-class wine pairings place Compylo among the top tables globally.',
+    quote: `The ambiance whispers understated wealth and culinary perfection. The lighting, acoustic comfort, and world-class wine pairings place ${SITE_CONFIG.name} among the top tables globally.`,
     rating: 5,
     date: 'Recent Feature',
   },
@@ -33,7 +34,7 @@ export const TESTIMONIALS: Testimonial[] = [
     name: 'Elena Rostova',
     role: 'Master Wine Steward',
     publication: 'International Wine & Spirit Guild',
-    quote: 'The cellar collection at Compylo is exceptional. Rare Bordeaux vintages, custom artisanal cocktails, and pairings that exceed expectations.',
+    quote: `The cellar collection at ${SITE_CONFIG.name} is exceptional. Rare Bordeaux vintages, custom artisanal cocktails, and pairings that exceed expectations.`,
     rating: 5,
     date: "Wine Expert's Choice",
   },

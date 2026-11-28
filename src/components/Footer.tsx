@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUp, Check } from 'lucide-react'
 import { sanitizeInput, isValidEmail, ActionRateLimiter } from '../utils/security'
+import { SITE_CONFIG } from '../config/site'
 
 const newsletterLimiter = new ActionRateLimiter('newsletter_sub', 3000)
 
@@ -73,7 +74,7 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-2">
               <span className="font-cinzel text-2xl font-bold tracking-[0.25em] text-[#f7ecd7]">
-                COMPYLO
+                {SITE_CONFIG.name}
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
             </div>
@@ -210,7 +211,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-sans gap-4">
           <p className="text-[#8a8d98]">
-            &copy; {new Date().getFullYear()} COMPYLO Restaurant &amp; Gastronomy. All rights reserved.
+            &copy; {new Date().getFullYear()} {SITE_CONFIG.name} Restaurant &amp; Gastronomy. All rights reserved.
           </p>
 
           <div className="flex items-center gap-6">

@@ -14,23 +14,17 @@ export const Navbar: React.FC = () => {
   const location = useLocation()
 
   useEffect(() => {
-    let frameId = 0
-    let ticking = false
+    let previousScrolled = false
 
     const handleScroll = () => {
-      if (ticking) return
-      ticking = true
-      frameId = window.requestAnimationFrame(() => {
-        const nextScrolled = window.scrollY > 25
-        setIsScrolled((current) => current === nextScrolled ? current : nextScrolled)
-        ticking = false
-      })
+      const nextScrolled = window.scrollY > 25
+      if (nextScrolled === previousScrolled) return
+      previousScrolled = nextScrolled
+      setIsScrolled(nextScrolled)
     }
+    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.cancelAnimationFrame(frameId)
-    }
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   // Close mobile drawer on route change
@@ -64,7 +58,7 @@ export const Navbar: React.FC = () => {
           >
             <div className="flex items-center gap-2">
               <span className="font-cinzel text-xl sm:text-2xl font-bold tracking-[0.22em] text-[#f7ecd7] group-hover:text-[#d4af37] transition-colors">
-                COMPYLO
+                {SITE_CONFIG.name}
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse" />
             </div>

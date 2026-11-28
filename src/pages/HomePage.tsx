@@ -11,6 +11,7 @@ import { MENU_ITEMS } from '../data/menuData'
 import { GALLERY_IMAGES } from '../data/galleryData'
 import { ArrowRight } from 'lucide-react'
 import { buildResponsiveImageSrcSet } from '../utils/responsiveImage'
+import { SITE_CONFIG } from '../config/site'
 
 export const HomePage: React.FC = () => {
   // Show 3 signature dishes on home
@@ -33,7 +34,7 @@ export const HomePage: React.FC = () => {
                   src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1000&q=80"
                   srcSet={buildResponsiveImageSrcSet('https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1000&q=80')}
                   sizes="(max-width: 1023px) calc(100vw - 3rem), 50vw"
-                  alt="Compylo Private Dining"
+                  alt={`${SITE_CONFIG.name} Private Dining`}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-80 sm:h-96 object-cover"
@@ -50,7 +51,7 @@ export const HomePage: React.FC = () => {
               </h2>
               <div className="w-16 h-[1.5px] bg-[#d4af37]" />
               <p className="text-sm text-[#a5a8b5] font-normal sm:font-medium leading-relaxed">
-                Founded on the belief that fine dining should be transformative rather than performative, <strong className="text-[#d4af37] font-semibold">COMPYLO</strong> brings together age-old French culinary discipline, Himalayan wild botanicals, and 1,000°C Japanese Binchotan charcoal craft.
+                Founded on the belief that fine dining should be transformative rather than performative, <strong className="text-[#d4af37] font-semibold">{SITE_CONFIG.name}</strong> brings together age-old French culinary discipline, Himalayan wild botanicals, and 1,000°C Japanese Binchotan charcoal craft.
               </p>
 
               <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">

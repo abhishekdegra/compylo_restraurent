@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronDown, Sparkles, MessageCircle, ArrowRight } from 'lucide-react'
 import { MagneticButton } from './ui/MagneticButton'
+import { SITE_CONFIG } from '../config/site'
 
 export const Hero: React.FC = () => {
   return (
@@ -52,7 +53,7 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.9, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="font-cinzel text-[2.15rem] sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold tracking-[0.1em] sm:tracking-[0.18em] hero-title-gradient drop-shadow-[0_10px_35px_rgba(0,0,0,0.6)] my-2 sm:my-3 leading-none"
         >
-          COMPYLO
+          {SITE_CONFIG.name}
         </motion.h1>
 
         {/* Elegant Gold Divider */}

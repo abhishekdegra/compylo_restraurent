@@ -5,6 +5,7 @@ import { GoldDivider } from './ui/GoldDivider'
 import { Counter } from './ui/Counter'
 import { Award, Compass, HeartHandshake, Sparkles } from 'lucide-react'
 import { buildResponsiveImageSrcSet } from '../utils/responsiveImage'
+import { SITE_CONFIG } from '../config/site'
 
 export const About: React.FC = () => {
   return (
@@ -19,7 +20,7 @@ export const About: React.FC = () => {
             Our Heritage & Philosophy
           </span>
           <h2 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-bold text-[#edebe6] mt-2 mb-4 tracking-[0.14em] leading-tight">
-            The Compylo Legacy
+            The {SITE_CONFIG.name} Legacy
           </h2>
           <GoldDivider className="my-5" />
           <p className="font-serif italic text-lg sm:text-xl text-[#a5a8b5] font-light max-w-xl mx-auto leading-relaxed mt-4">
@@ -38,7 +39,7 @@ export const About: React.FC = () => {
                   src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1000&q=80"
                   srcSet={buildResponsiveImageSrcSet('https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1000&q=80')}
                   sizes="(max-width: 1023px) calc(100vw - 3rem), 50vw"
-                  alt="Compylo Private Dining Room"
+                  alt={`${SITE_CONFIG.name} Private Dining Room`}
                   className="w-full h-[460px] object-cover transition-transform duration-1000 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
@@ -74,7 +75,7 @@ export const About: React.FC = () => {
             </h3>
 
             <p className="text-[#a5a8b5] font-sans text-sm md:text-base leading-relaxed font-light">
-              Founded on the belief that fine dining should be transformative rather than performative, <strong className="text-[#d4af37] font-normal">COMPYLO</strong> brings together age-old European culinary discipline and bold modern techniques.
+              Founded on the belief that fine dining should be transformative rather than performative, <strong className="text-[#d4af37] font-normal">{SITE_CONFIG.name}</strong> brings together age-old European culinary discipline and bold modern techniques.
             </p>
 
             <p className="text-[#a5a8b5] font-sans text-sm md:text-base leading-relaxed font-light">

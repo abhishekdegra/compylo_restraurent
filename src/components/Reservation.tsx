@@ -416,7 +416,7 @@ _Kindly confirm table availability and concierge reception details._`
                   VIP Reservation Prepared
                 </h3>
                 <p className="font-serif italic text-base sm:text-lg text-[#d4af37] mt-1.5">
-                  Connecting directly with the Compylo reservation host on WhatsApp...
+                  Connecting directly with the {SITE_CONFIG.name} reservation host on WhatsApp...
                 </p>
                 <p className="text-xs text-[#8a8d98] max-w-md mt-3 font-sans leading-relaxed">
                   Your personalized table reservation has been generated with verified concierge credentials.
@@ -638,7 +638,7 @@ _Kindly confirm table availability and concierge reception details._`
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-[#d4af37]" />
                     <span className="font-cinzel text-xs uppercase tracking-[0.22em] text-[#d4af37] font-bold">
-                      COMPYLO VIP PASS
+                      {SITE_CONFIG.name} VIP PASS
                     </span>
                   </div>
                   <span className="text-[9px] font-mono uppercase tracking-widest text-[#caa065] bg-[#d4af37]/10 px-2 py-0.5 border border-[#d4af37]/30">

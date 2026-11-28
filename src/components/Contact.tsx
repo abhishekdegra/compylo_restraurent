@@ -28,7 +28,7 @@ export const Contact: React.FC = () => {
           <div className="lg:col-span-7 bg-[#111318] border border-[#d4af37]/25 p-2 rounded-sm shadow-[0_15px_40px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col min-h-[420px]">
             {/* Embedded Dark Styled Map */}
             <iframe
-              title="Compylo Fine Dining Location"
+              title={`${SITE_CONFIG.name} Fine Dining Location`}
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.8906354890666!2d77.22741547631985!3d28.633045375664184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd37b605929d%3A0x6b4ef8d6139cfc1a!2sConnaught%20Place%2C%20New%20Delhi!5e0!3m2!1sen!2sin!4v1714500000000!5m2!1sen!2sin"
               className="contact-map-iframe w-full h-full min-h-[400px] border-0 filter invert contrast-125 hue-rotate-180 opacity-70 hover:opacity-100 transition-opacity duration-500"
               loading="lazy"
@@ -41,7 +41,7 @@ export const Contact: React.FC = () => {
                 <MapPin className="w-5 h-5 text-[#d4af37]" />
                 <div>
                   <span className="font-cinzel text-xs font-bold text-[#f7ecd7] block">
-                    The Compylo Estate
+                    The {SITE_CONFIG.name} Estate
                   </span>
                   <span className="text-[11px] text-[#8a8d98] font-sans">
                     42 King's Promenade, Diplomatic Enclave

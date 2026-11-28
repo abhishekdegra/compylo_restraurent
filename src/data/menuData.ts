@@ -1,4 +1,5 @@
 import type { MenuItem } from '../types'
+import { SITE_CONFIG } from '../config/site'
 
 export const MENU_ITEMS: MenuItem[] = [
   {
@@ -99,7 +100,7 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     id: 'tasting-1',
-    name: 'The Compylo Seven-Course Tasting',
+    name: `The ${SITE_CONFIG.name} Seven-Course Tasting`,
     subtitle: 'Land, Sea & Seasonal Harvest',
     description: 'A multi-sensory journey across land, sea, and the seasonal harvest. A custom wine pairing from our head wine steward is also available.',
     price: 'INR 7,500 per guest',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { VolumeX } from 'lucide-react'
+import { SITE_CONFIG } from '../config/site'
 
 export const AmbientSoundscape: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -102,7 +103,7 @@ export const AmbientSoundscape: React.FC = () => {
           : 'bg-[#12151b]/70 border-[#d4af37]/25 text-[#8a8d98] hover:text-[#f7ecd7] hover:border-[#d4af37]/60'
       }`}
       aria-label="Toggle Luxury Lounge Soundscape"
-      title={isPlaying ? 'Mute Lounge Soundscape' : 'Listen to Compylo Lounge Acoustics'}
+      title={isPlaying ? 'Mute Lounge Soundscape' : `Listen to ${SITE_CONFIG.name} Lounge Acoustics`}
     >
       {isPlaying ? (
         <>

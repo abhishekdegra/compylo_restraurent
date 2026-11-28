@@ -54,7 +54,7 @@ export const FloatingWhatsApp: React.FC = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.94 }}
         className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-[0_8px_32px_rgba(37,211,102,0.5)] cursor-pointer group border border-white/25 transition-colors"
-        aria-label="Chat on WhatsApp with Compylo Concierge"
+        aria-label={`Chat on WhatsApp with ${SITE_CONFIG.name} Concierge`}
       >
         <WhatsAppIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#d4af37] border-2 border-[#08090b] rounded-full" />

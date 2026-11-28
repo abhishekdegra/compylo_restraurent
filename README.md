@@ -1,11 +1,11 @@
-# COMPYLO Restaurant
+# Kafeholic
 
-A premium, cinematic fine-dining website built for COMPYLO. The experience combines an ancient-palace entrance, responsive storytelling, a living banyan-and-serpent scroll animation, curated menus, gallery, reservations, and contact flows.
+A premium, cinematic fine-dining demo for Kafeholic. The experience combines a café storefront entrance, responsive storytelling, a living banyan-and-serpent scroll animation, curated menus, gallery, reservations, and contact flows.
 
 ## Highlights
 
 - Fully responsive desktop, tablet, and mobile layouts
-- Cinematic palace-gate intro with animated birds
+- Photographic Kafeholic storefront intro with hinged glass doors
 - Circadian dawn, day, dusk, and noir themes
 - Canvas-based banyan tree and serpent scroll experience
 - Route-level code splitting and responsive image delivery
@@ -83,4 +83,4 @@ The included rewrite keeps React Router routes working when a page is refreshed 
 
 ## License
 
-Private project. All rights reserved by COMPYLO Restaurant.
+Private demo project. All rights reserved.

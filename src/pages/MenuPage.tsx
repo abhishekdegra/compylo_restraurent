@@ -4,6 +4,7 @@ import { PalateQuiz } from '../components/PalateQuiz'
 import { AnimatedSection } from '../components/ui/AnimatedSection'
 import { GoldDivider } from '../components/ui/GoldDivider'
 import { Wine } from 'lucide-react'
+import { SITE_CONFIG } from '../config/site'
 
 export const MenuPage: React.FC = () => {
   return (
@@ -35,7 +36,7 @@ export const MenuPage: React.FC = () => {
             <Wine className="w-6 h-6" />
           </div>
           <h3 className="font-cinzel text-xl sm:text-2xl font-bold text-[#f7ecd7]">
-            The Compylo Vintage Wine Cellar
+            The {SITE_CONFIG.name} Vintage Wine Cellar
           </h3>
           <p className="text-xs sm:text-sm text-[#a5a8b5] font-light max-w-xl mx-auto leading-relaxed">
             Our temperature-monitored cellar holds more than 450 certified vintages from Bordeaux, Burgundy, Piedmont, and small-batch biodynamic wine producers.

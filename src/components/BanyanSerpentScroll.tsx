@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import type Lenis from 'lenis'
 import { useCircadianTheme } from '../context/ThemeContext'
 import banyanTreeNight from '../assets/banyan-tree-night.webp'
 import banyanTreeDay from '../assets/banyan-tree-day.webp'
@@ -19,7 +20,6 @@ interface SpinePoint3D {
   z: number
   radius: number
   angle: number
-  progress: number
   normalX: number
   normalY: number
 }
@@ -170,8 +170,19 @@ export function BanyanSerpentScroll() {
 
   // Scroll listener with calm, smooth interpolation, reverse detection, and Lenis integration
   useEffect(() => {
+    if (!isVisible) return
+
+    const state = scrollStateRef.current
+    let scrollRange = 0
+    const getScrollProgress = (scrollY: number) =>
+      scrollRange > 0 ? Math.min(1, Math.max(0, scrollY / scrollRange)) : 0
+
+    const refreshScrollRange = () => {
+      scrollRange = document.documentElement.scrollHeight - window.innerHeight
+      state.targetProgress = getScrollProgress(window.scrollY)
+    }
+
     const requestHeading = (direction: 1 | -1) => {
-      const state = scrollStateRef.current
       if (state.headingDirection !== direction) {
         state.headingDirection = direction
         state.turnEnergy = 1
@@ -183,14 +194,11 @@ export function BanyanSerpentScroll() {
     }
 
     const handleScroll = () => {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      const progress = docHeight > 0 ? Math.min(1, Math.max(0, scrollTop / docHeight)) : 0
-
-      const delta = scrollTop - scrollStateRef.current.lastScrollY
-      scrollStateRef.current.velocity = delta
-      scrollStateRef.current.lastScrollY = scrollTop
-      scrollStateRef.current.targetProgress = progress
+      const scrollTop = window.scrollY
+      const delta = scrollTop - state.lastScrollY
+      state.velocity = delta
+      state.lastScrollY = scrollTop
+      state.targetProgress = getScrollProgress(scrollTop)
 
       // Reverse direction detection on scroll
       if (delta > 0.4) {
@@ -199,31 +207,29 @@ export function BanyanSerpentScroll() {
         requestHeading(-1)
       }
 
-      if (Math.abs(delta) > 0.8 && scrollStateRef.current.tongueCooldown <= 0) {
-        scrollStateRef.current.tongueFlick = 34
-        scrollStateRef.current.tongueCooldown = 45
+      if (Math.abs(delta) > 0.8 && state.tongueCooldown <= 0) {
+        state.tongueFlick = 34
+        state.tongueCooldown = 45
       }
     }
 
+    // Layout changes (lazy routes and images included) update the cached range.
+    // Native scroll events only sample position, so they don't force layout.
+    const documentSizeObserver = new ResizeObserver(refreshScrollRange)
+    documentSizeObserver.observe(document.body)
+    window.addEventListener('resize', refreshScrollRange, { passive: true })
     window.addEventListener('scroll', handleScroll, { passive: true })
 
     let lenisTimer: number | null = null
+    let unsubscribeLenis: (() => void) | undefined
     let lenisAttempts = 0
     const checkLenis = () => {
-      const lenis = (
-        window as unknown as {
-          __lenis?: {
-            direction?: number
-            velocity?: number
-            on: (event: string, cb: (e: { progress?: number; velocity?: number; direction?: number }) => void) => void
-          }
-        }
-      ).__lenis
+      const lenis = (window as Window & { __lenis?: Lenis }).__lenis
 
-      if (lenis && typeof lenis.on === 'function') {
-        lenis.on('scroll', (e) => {
+      if (lenis) {
+        unsubscribeLenis = lenis.on('scroll', (e) => {
           if (typeof e.progress === 'number') {
-            scrollStateRef.current.targetProgress = Math.min(1, Math.max(0, e.progress))
+            state.targetProgress = Math.min(1, Math.max(0, e.progress))
           }
           if (typeof e.direction === 'number' && e.direction !== 0) {
             requestHeading(e.direction > 0 ? 1 : -1)
@@ -236,10 +242,10 @@ export function BanyanSerpentScroll() {
           }
 
           if (typeof e.velocity === 'number') {
-            scrollStateRef.current.velocity = e.velocity * 3.0
-            if (Math.abs(e.velocity) > 0.10 && scrollStateRef.current.tongueCooldown <= 0) {
-              scrollStateRef.current.tongueFlick = 34
-              scrollStateRef.current.tongueCooldown = 45
+            state.velocity = e.velocity * 3.0
+            if (Math.abs(e.velocity) > 0.10 && state.tongueCooldown <= 0) {
+              state.tongueFlick = 34
+              state.tongueCooldown = 45
             }
           }
         })
@@ -249,14 +255,20 @@ export function BanyanSerpentScroll() {
       }
     }
 
-    checkLenis()
+    const usesNativeScroll = 'ontouchstart' in window || navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!usesNativeScroll) checkLenis()
+    refreshScrollRange()
     handleScroll()
 
     return () => {
+      documentSizeObserver.disconnect()
+      window.removeEventListener('resize', refreshScrollRange)
       window.removeEventListener('scroll', handleScroll)
       if (lenisTimer) clearTimeout(lenisTimer)
+      unsubscribeLenis?.()
     }
-  }, [])
+  }, [isVisible])
 
   // Canvas Render Loop (60Hz - 120Hz ProMotion Calibrated)
   useEffect(() => {
@@ -266,32 +278,84 @@ export function BanyanSerpentScroll() {
     const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
     if (!ctx) return
 
-    let animationFrameId: number
+    let animationFrameId = 0
     let width = 0
     let height = 0
+    let dpr = 0
+    let backdrop: HTMLCanvasElement | null = null
     let lastTimestamp = performance.now()
     let lastPaintTimestamp = 0
     let resizeFrameId = 0
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8
     const lowPowerDevice = navigator.hardwareConcurrency <= 4 || deviceMemory <= 4
+    const isLightMode = theme === 'zenith' || theme === 'dawn'
+    const trailEdgeLengths: number[] = []
+    const spine3D: SpinePoint3D[] = []
+
+    const paintTreeBackdrop = (context: CanvasRenderingContext2D, centerX: number, radius: number) => {
+      if (isLightMode) {
+        const grounding = context.createLinearGradient(0, 0, width, 0)
+        grounding.addColorStop(0, 'rgba(42, 27, 12, 0.16)')
+        grounding.addColorStop(0.48, 'rgba(76, 49, 18, 0.08)')
+        grounding.addColorStop(1, 'rgba(255, 255, 255, 0)')
+        context.fillStyle = grounding
+        context.fillRect(0, 0, width, height)
+
+        const sunbeam = context.createRadialGradient(centerX, height * 0.35, 8, centerX, height * 0.35, width * 1.1)
+        sunbeam.addColorStop(0, 'rgba(245, 225, 160, 0.13)')
+        sunbeam.addColorStop(0.6, 'rgba(212, 175, 55, 0.04)')
+        sunbeam.addColorStop(1, 'rgba(255, 255, 255, 0)')
+        context.fillStyle = sunbeam
+        context.fillRect(0, 0, width, height)
+      } else {
+        context.fillStyle = palette.barkBackdrop
+        context.filter = 'blur(8px)'
+        context.fillRect(centerX - radius - 10, 0, radius * 2 + 20, height)
+        context.filter = 'none'
+      }
+    }
+
+    const drawTreeBackdrop = (centerX: number, radius: number) => {
+      if (!backdrop) {
+        const layer = document.createElement('canvas')
+        layer.width = canvas.width
+        layer.height = canvas.height
+        const layerContext = layer.getContext('2d')
+        if (!layerContext) {
+          paintTreeBackdrop(ctx, centerX, radius)
+          return
+        }
+        layerContext.setTransform(dpr, 0, 0, dpr, 0, 0)
+        paintTreeBackdrop(layerContext, centerX, radius)
+        backdrop = layer
+      }
+
+      // Copy at the same backing-pixel resolution without scaling the lighting.
+      ctx.save()
+      ctx.resetTransform()
+      ctx.drawImage(backdrop, 0, 0)
+      ctx.restore()
+    }
 
     // Setup high-DPI canvas
     const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const nextDpr = Math.min(window.devicePixelRatio || 1, 2)
       const rect = canvas.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) return
       const nextWidth = rect.width
       const nextHeight = rect.height
+      if (nextWidth === width && nextHeight === height && nextDpr === dpr) return
       if (width > 0 && (Math.abs(nextWidth - width) > 8 || Math.abs(nextHeight - height) > 120)) {
         serpentTrailRef.current = []
       }
       width = nextWidth
       height = nextHeight
+      dpr = nextDpr
+      backdrop = null
       canvas.width = Math.floor(width * dpr)
       canvas.height = Math.floor(height * dpr)
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.scale(dpr, dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
     const scheduleResize = () => {
@@ -300,6 +364,8 @@ export function BanyanSerpentScroll() {
     }
 
     resizeCanvas()
+    const canvasSizeObserver = new ResizeObserver(scheduleResize)
+    canvasSizeObserver.observe(canvas)
     window.addEventListener('resize', scheduleResize, { passive: true })
 
     // Floating sacred golden spores
@@ -324,20 +390,13 @@ export function BanyanSerpentScroll() {
     ]
 
     // Render loop with Frame-Rate Independent Delta-Time Physics
-    const render = () => {
-      if (document.hidden) {
-        lastTimestamp = performance.now()
-        animationFrameId = requestAnimationFrame(render)
-        return
-      }
-
-      if (!ctx || width === 0 || height === 0) {
+    const render = (now: number) => {
+      if (width === 0 || height === 0) {
         resizeCanvas()
         animationFrameId = requestAnimationFrame(render)
         return
       }
 
-      const now = performance.now()
       const state = scrollStateRef.current
       const resting = Math.abs(state.targetProgress - state.currentProgress) < 0.00008 && Math.abs(state.velocity) < 0.025
       const targetFrameTime = reducedMotionQuery.matches
@@ -351,7 +410,7 @@ export function BanyanSerpentScroll() {
       }
       lastPaintTimestamp = now
 
-      const dt = Math.min(0.064, (now - lastTimestamp) * 0.001)
+      const dt = Math.max(0, Math.min(0.064, (now - lastTimestamp) * 0.001))
       lastTimestamp = now
 
       ctx.clearRect(0, 0, width, height)
@@ -398,7 +457,6 @@ export function BanyanSerpentScroll() {
       if (state.tongueFlick > 0) state.tongueFlick--
 
       const time = now * 0.001
-      const isLightMode = theme === 'zenith' || theme === 'dawn'
 
       // Bottom-anchored living-banyan motion. A tiny scroll gust is layered over
       // two slow breeze frequencies so the movement never feels mechanical.
@@ -420,16 +478,13 @@ export function BanyanSerpentScroll() {
       const maxBodyRadius = isMobile ? 7.0 : 13.5
       const baseNeckRadius = isMobile ? 4.5 : 8.2
 
-      const getTrunkAt = (y: number) => {
+      const sway = Math.sin(breezeSwayAngle)
+      const getTrunkXAt = (y: number) => {
         const curveAmp = isMobile ? 2.5 : 5.5
         const curve =
           Math.sin((y / height) * Math.PI * 2.5 + 0.2) * curveAmp +
           Math.cos((y / height) * Math.PI * 1.2) * (curveAmp * 0.5)
-        const anchoredSway = (height - y) * Math.sin(breezeSwayAngle)
-        return {
-          x: trunkCenterX + curve + anchoredSway,
-          radius: trunkRadiusBase,
-        }
+        return trunkCenterX + curve + (height - y) * sway
       }
 
       // ===================================================================
@@ -492,7 +547,9 @@ export function BanyanSerpentScroll() {
       for (let i = 1; i < trail.length; i++) {
         const a = trail[i - 1]
         const b = trail[i]
-        retainedLength += Math.hypot(a.y - b.y, (a.theta - b.theta) * coilPathRadius)
+        const edgeLength = Math.hypot(a.y - b.y, (a.theta - b.theta) * coilPathRadius)
+        trailEdgeLengths[i - 1] = edgeLength
+        retainedLength += edgeLength
         if (retainedLength >= bodyPathLength * 1.12) {
           retainedPoints = i + 1
           break
@@ -502,41 +559,28 @@ export function BanyanSerpentScroll() {
 
       // Arc-length resampling keeps every body segment at a fixed distance from
       // its neighbours, including through a complete direction reversal.
-      const sampledTrail: SnakeTrailPoint[] = []
+      const tail = trail[trail.length - 1]
       let trailCursor = 0
       let traversedLength = 0
       for (let i = 0; i < segmentCount; i++) {
-        const targetLength = (i / (segmentCount - 1)) * bodyPathLength
+        const progress = i / (segmentCount - 1)
+        const targetLength = progress * bodyPathLength
 
+        let segY = tail.y
+        let segTheta = tail.theta
         while (trailCursor + 1 < trail.length) {
           const a = trail[trailCursor]
           const b = trail[trailCursor + 1]
-          const segmentLength = Math.hypot(a.y - b.y, (a.theta - b.theta) * coilPathRadius)
+          const segmentLength = trailEdgeLengths[trailCursor]
           if (traversedLength + segmentLength >= targetLength) {
             const t = segmentLength > 0 ? (targetLength - traversedLength) / segmentLength : 0
-            sampledTrail.push({
-              y: a.y + (b.y - a.y) * t,
-              theta: a.theta + (b.theta - a.theta) * t,
-            })
+            segY = a.y + (b.y - a.y) * t
+            segTheta = a.theta + (b.theta - a.theta) * t
             break
           }
           traversedLength += segmentLength
           trailCursor++
         }
-
-        if (sampledTrail.length <= i) {
-          sampledTrail.push(trail[trail.length - 1] || headTrailPoint)
-        }
-      }
-
-      const spine3D: SpinePoint3D[] = []
-
-      for (let i = 0; i < segmentCount; i++) {
-        const progress = i / (segmentCount - 1)
-        const trailPoint = sampledTrail[i]
-        const segTheta = trailPoint.theta
-        const segY = trailPoint.y
-        const trunk = getTrunkAt(segY)
 
         // DUAL-HARMONIC SLITHER ANIMATION WAVE:
         const wave1 = Math.sin(state.slitherPhase - progress * Math.PI * 2.5) * (2.8 * scaleMultiplier)
@@ -560,21 +604,14 @@ export function BanyanSerpentScroll() {
           segRadius = Math.max(1.8 * scaleMultiplier, maxBodyRadius - tp * (maxBodyRadius - 1.8 * scaleMultiplier))
         }
 
-        const gripDistance = trunk.radius + segRadius - (0.8 * scaleMultiplier) + breathingPulse
+        const gripDistance = trunkRadiusBase + segRadius - (0.8 * scaleMultiplier) + breathingPulse
 
-        const segX = trunk.x + gripDistance * Math.sin(segTheta) + undulationWave * Math.cos(segTheta)
-        const segZ = gripDistance * Math.cos(segTheta)
-
-        spine3D.push({
-          x: segX,
-          y: segY,
-          z: segZ,
-          radius: segRadius,
-          angle: 0,
-          progress,
-          normalX: 0,
-          normalY: 0,
-        })
+        const cosine = Math.cos(segTheta)
+        const point = spine3D[i] ?? (spine3D[i] = { x: 0, y: 0, z: 0, radius: 0, angle: 0, normalX: 0, normalY: 0 })
+        point.x = getTrunkXAt(segY) + gripDistance * Math.sin(segTheta) + undulationWave * cosine
+        point.y = segY
+        point.z = gripDistance * cosine
+        point.radius = segRadius
       }
 
       // Calculate tangent angle and normal vectors along spine
@@ -648,37 +685,28 @@ export function BanyanSerpentScroll() {
       }
       chunks.push(currentChunk)
 
+      const startLeftContour = (startIdx: number, endIdx: number) => {
+        const first = spine3D[startIdx]
+        ctx.moveTo(first.x - first.normalX * first.radius, first.y - first.normalY * first.radius)
+        for (let i = startIdx + 1; i <= endIdx; i++) {
+          const pt = spine3D[i]
+          ctx.lineTo(pt.x - pt.normalX * pt.radius, pt.y - pt.normalY * pt.radius)
+        }
+      }
+
       // Helper to render an unbroken, smooth, continuous muscular ribbon path
       const renderContinuousRibbon = (startIdx: number, endIdx: number, isFront: boolean) => {
         if (startIdx >= endIdx) return
 
         ctx.save()
 
-        const leftContour: { x: number; y: number }[] = []
-        const rightContour: { x: number; y: number }[] = []
-
-        for (let i = startIdx; i <= endIdx; i++) {
-          const pt = spine3D[i]
-          const r = pt.radius
-          leftContour.push({
-            x: pt.x - pt.normalX * r,
-            y: pt.y - pt.normalY * r,
-          })
-          rightContour.push({
-            x: pt.x + pt.normalX * r,
-            y: pt.y + pt.normalY * r,
-          })
-        }
-
         ctx.beginPath()
-        ctx.moveTo(leftContour[0].x, leftContour[0].y)
-        for (let i = 1; i < leftContour.length; i++) {
-          ctx.lineTo(leftContour[i].x, leftContour[i].y)
-        }
+        startLeftContour(startIdx, endIdx)
         const lastPt = spine3D[endIdx]
         ctx.arc(lastPt.x, lastPt.y, lastPt.radius, spine3D[endIdx].angle - Math.PI / 2, spine3D[endIdx].angle + Math.PI / 2, false)
-        for (let i = rightContour.length - 1; i >= 0; i--) {
-          ctx.lineTo(rightContour[i].x, rightContour[i].y)
+        for (let i = endIdx; i >= startIdx; i--) {
+          const pt = spine3D[i]
+          ctx.lineTo(pt.x + pt.normalX * pt.radius, pt.y + pt.normalY * pt.radius)
         }
         const firstPt = spine3D[startIdx]
         ctx.arc(firstPt.x, firstPt.y, firstPt.radius, spine3D[startIdx].angle + Math.PI / 2, spine3D[startIdx].angle - Math.PI / 2, false)
@@ -698,12 +726,9 @@ export function BanyanSerpentScroll() {
 
         // Naturally blended pale belly plates
         ctx.beginPath()
-        ctx.moveTo(leftContour[0].x, leftContour[0].y)
-        for (let i = 1; i < leftContour.length; i++) {
-          ctx.lineTo(leftContour[i].x, leftContour[i].y)
-        }
-        for (let i = leftContour.length - 1; i >= 0; i--) {
-          const pt = spine3D[startIdx + i]
+        startLeftContour(startIdx, endIdx)
+        for (let i = endIdx; i >= startIdx; i--) {
+          const pt = spine3D[i]
           ctx.lineTo(pt.x - pt.normalX * (pt.radius * 0.35), pt.y - pt.normalY * (pt.radius * 0.35))
         }
         ctx.closePath()
@@ -976,29 +1001,7 @@ export function BanyanSerpentScroll() {
       const activeTreeTexture = isLightMode ? banyanTextureDayRef.current : banyanTextureDarkRef.current
 
       if (activeTreeTexture) {
-        if (isLightMode) {
-          // A narrow champagne shaft plus a grounded bark shadow keeps the tree
-          // sculptural on ivory surfaces without the old milky halo.
-          const grounding = ctx.createLinearGradient(0, 0, width, 0)
-          grounding.addColorStop(0, 'rgba(42, 27, 12, 0.16)')
-          grounding.addColorStop(0.48, 'rgba(76, 49, 18, 0.08)')
-          grounding.addColorStop(1, 'rgba(255, 255, 255, 0)')
-          ctx.fillStyle = grounding
-          ctx.fillRect(0, 0, width, height)
-
-          const sunbeam = ctx.createRadialGradient(trunkCenterX, height * 0.35, 8, trunkCenterX, height * 0.35, width * 1.1)
-          sunbeam.addColorStop(0, 'rgba(245, 225, 160, 0.13)')
-          sunbeam.addColorStop(0.6, 'rgba(212, 175, 55, 0.04)')
-          sunbeam.addColorStop(1, 'rgba(255, 255, 255, 0)')
-          ctx.fillStyle = sunbeam
-          ctx.fillRect(0, 0, width, height)
-        } else {
-          // Midnight/Amber atmospheric blur backdrop
-          ctx.fillStyle = palette.barkBackdrop
-          ctx.filter = 'blur(8px)'
-          ctx.fillRect(trunkCenterX - trunkRadiusBase - 10, 0, trunkRadiusBase * 2 + 20, height)
-          ctx.filter = 'none'
-        }
+        drawTreeBackdrop(trunkCenterX, trunkRadiusBase)
 
         const treeAspect = activeTreeTexture.width / activeTreeTexture.height
         const targetTreeH = height * 1.04
@@ -1007,7 +1010,7 @@ export function BanyanSerpentScroll() {
         const treeX = trunkCenterX - targetTreeW * 0.40
 
         // Rotate around the rooted base. The procedural trunk and snake use the
-        // same breezeSwayAngle through getTrunkAt(), so nothing appears detached.
+        // same breezeSwayAngle through getTrunkXAt(), so nothing appears detached.
         ctx.save()
         ctx.translate(trunkCenterX, height)
         ctx.rotate(breezeSwayAngle)
@@ -1017,8 +1020,7 @@ export function BanyanSerpentScroll() {
         const trunkPoly: { x: number; y: number; r: number }[] = []
         for (let s = 0; s <= 45; s++) {
           const ty = (s / 45) * height
-          const info = getTrunkAt(ty)
-          trunkPoly.push({ x: info.x, y: ty, r: info.radius })
+          trunkPoly.push({ x: getTrunkXAt(ty), y: ty, r: trunkRadiusBase })
         }
         ctx.beginPath()
         ctx.moveTo(trunkPoly[0].x - trunkPoly[0].r, trunkPoly[0].y)
@@ -1170,7 +1172,7 @@ export function BanyanSerpentScroll() {
 
       richFoliageClusters.forEach((cluster) => {
         const clusterY = cluster.yRatio * height
-        const clusterX = trunkCenterX + (height - clusterY) * Math.sin(breezeSwayAngle) + cluster.xOffset * scaleMultiplier
+        const clusterX = trunkCenterX + (height - clusterY) * sway + cluster.xOffset * scaleMultiplier
 
         for (let l = 0; l < cluster.count; l++) {
           const leafFlutter = Math.sin(time * 0.85 + l * 0.9 + cluster.yRatio * 4) * 0.045
@@ -1204,14 +1206,24 @@ export function BanyanSerpentScroll() {
       animationFrameId = requestAnimationFrame(render)
     }
 
-    animationFrameId = requestAnimationFrame(render)
+    const syncVisibility = () => {
+      cancelAnimationFrame(animationFrameId)
+      if (!document.hidden) {
+        lastTimestamp = performance.now()
+        animationFrameId = requestAnimationFrame(render)
+      }
+    }
+    document.addEventListener('visibilitychange', syncVisibility)
+    syncVisibility()
 
     return () => {
       cancelAnimationFrame(animationFrameId)
       cancelAnimationFrame(resizeFrameId)
+      document.removeEventListener('visibilitychange', syncVisibility)
+      canvasSizeObserver.disconnect()
       window.removeEventListener('resize', scheduleResize)
     }
-  }, [palette, theme])
+  }, [isVisible, palette, theme])
 
   if (!isVisible) return null
 

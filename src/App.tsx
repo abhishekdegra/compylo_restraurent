@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Lenis from 'lenis'
 import { ThemeProvider } from './context/ThemeContext'
@@ -20,6 +20,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage').then((module) => ({
 
 export function App() {
   const [loading, setLoading] = useState(true)
+  const finishIntro = useCallback(() => setLoading(false), [])
 
   // Initialize Lenis buttery-smooth momentum scroll with mobile performance calibration
   useEffect(() => {
@@ -90,10 +91,9 @@ export function App() {
     <ThemeProvider>
       <BrowserRouter>
         <ScrollToTop />
-        <div className="relative min-h-screen bg-[#08090b] text-[#edebe6] selection:bg-[#d4af37] selection:text-[#08090b] font-sans antialiased overflow-x-hidden flex flex-col justify-between transition-colors duration-500">
-          {/* Luxury Initial Page Loader on First Visit */}
-          {loading && <Loader onComplete={() => setLoading(false)} />}
+        {loading && <Loader onComplete={finishIntro} />}
 
+        <div inert={loading} className="relative min-h-screen bg-[#08090b] text-[#edebe6] selection:bg-[#d4af37] selection:text-[#08090b] font-sans antialiased overflow-x-clip flex flex-col justify-between transition-colors duration-500">
           {/* Majestic Banyan Tree & Guardian Serpent Scroll Experience */}
           {!loading && (
             <Suspense fallback={null}>

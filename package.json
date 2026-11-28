@@ -1,8 +1,8 @@
 {
-  "name": "compylo-restaurant",
+  "name": "kafeholic",
   "private": true,
   "version": "1.0.0",
-  "description": "Premium, responsive fine-dining experience for COMPYLO Restaurant.",
+  "description": "Premium, responsive fine-dining experience for Kafeholic.",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"

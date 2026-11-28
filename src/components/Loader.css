@@ -1,0 +1,208 @@
+.cafe-intro {
+  --intro-duration: 2.45s;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  isolation: isolate;
+  overflow: hidden;
+  background: #21140d;
+}
+
+.cafe-intro[data-phase='playing'] {
+  animation: cafe-intro-reveal var(--intro-duration) linear both;
+}
+
+.cafe-intro[data-phase='skipping'] {
+  animation: cafe-intro-skip 0.2s ease-out both;
+}
+
+.cafe-intro__frame {
+  /* Door coordinates are percentages of the source image, before cropping. */
+  --frame-ratio: calc(1672 / 941);
+  --entry-left: 40.65%;
+  --entry-right: 39.3%;
+  --entry-top: 53.86%;
+  --entry-bottom: 7%;
+  --camera-x: 50.66%;
+  --camera-y: 70.4%;
+  --push-scale: 4.1;
+  --push-lift: -16%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, calc(100vh * var(--frame-ratio)));
+  width: max(100vw, calc(100dvh * var(--frame-ratio)));
+  aspect-ratio: var(--frame-ratio);
+  container-type: inline-size;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cafe-intro__camera,
+.cafe-intro__photo {
+  position: absolute;
+  inset: 0;
+}
+
+.cafe-intro__camera {
+  transform-origin: var(--camera-x) var(--camera-y);
+}
+
+.cafe-intro__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cafe-intro:not([data-ready]) .cafe-intro__frame {
+  visibility: hidden;
+}
+
+.cafe-intro[data-ready] .cafe-intro__camera {
+  animation: cafe-intro-push var(--intro-duration) both;
+}
+
+.cafe-intro__doorway {
+  position: absolute;
+  inset: var(--entry-top) var(--entry-right) var(--entry-bottom) var(--entry-left);
+  perspective: 57cqw;
+  perspective-origin: 50% 43%;
+}
+
+.cafe-intro__door {
+  --frame-stroke: clamp(3px, 0.48cqw, 9px);
+  position: absolute;
+  inset-block: 0;
+  width: 50%;
+  border: var(--frame-stroke) solid #2e211a;
+  background:
+    linear-gradient(155deg, rgb(255 216 152 / 17%), transparent 44%, rgb(20 11 8 / 12%) 70%),
+    linear-gradient(112deg, transparent 32%, rgb(255 235 189 / 12%) 50%, transparent 66%),
+    rgb(92 49 25 / 22%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 220 171 / 23%),
+    0 0 0 1px rgb(30 18 13 / 68%);
+}
+
+.cafe-intro__door--left {
+  --door-angle: -101deg;
+  left: 0;
+  transform-origin: left center;
+}
+
+.cafe-intro__door--right {
+  --door-angle: 101deg;
+  right: 0;
+  transform-origin: right center;
+}
+
+.cafe-intro__door::after {
+  position: absolute;
+  top: 40%;
+  width: clamp(3px, 0.42cqw, 7px);
+  height: 23%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #291a14, #936846 41%, #37251b 82%);
+  box-shadow: 1px 2px 2px rgb(26 15 9 / 47%);
+  content: '';
+}
+
+.cafe-intro__door--left::after {
+  right: 5%;
+}
+
+.cafe-intro__door--right::after {
+  left: 5%;
+}
+
+.cafe-intro[data-ready] .cafe-intro__door {
+  animation: cafe-intro-door 1.15s cubic-bezier(0.42, 0.06, 0.19, 1) 0.36s both;
+}
+
+.cafe-intro__skip {
+  position: absolute;
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgb(255 241 218 / 42%);
+  border-radius: 2rem;
+  background: rgb(31 19 12 / 86%);
+  color: #fff1da;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.cafe-intro__skip:hover {
+  background: #332318;
+}
+
+.cafe-intro__skip:focus-visible {
+  outline: 2px solid #ffe0ad;
+  outline-offset: 3px;
+}
+
+.cafe-intro[data-portrait] .cafe-intro__frame {
+  --frame-ratio: calc(941 / 1672);
+  --entry-left: 31.88%;
+  --entry-right: 31.77%;
+  --entry-top: 53.58%;
+  --entry-bottom: 22.9%;
+  --camera-x: 50%;
+  --camera-y: 64%;
+  --push-scale: 3.2;
+  --push-lift: -12%;
+}
+
+.cafe-intro[data-portrait] .cafe-intro__doorway {
+  perspective: 94cqw;
+}
+
+@keyframes cafe-intro-door {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(var(--door-angle)); }
+}
+
+@keyframes cafe-intro-push {
+  0% {
+    transform: translateY(0) scale(1);
+    animation-timing-function: ease-out;
+  }
+  48% {
+    transform: translateY(-0.8%) scale(1.048);
+    animation-timing-function: cubic-bezier(0.54, 0, 0.43, 1);
+  }
+  100% {
+    transform: translateY(var(--push-lift)) scale(var(--push-scale));
+  }
+}
+
+@keyframes cafe-intro-reveal {
+  0%, 77% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes cafe-intro-skip {
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cafe-intro {
+    --intro-duration: 0.62s;
+  }
+
+  .cafe-intro[data-ready] .cafe-intro__camera,
+  .cafe-intro[data-ready] .cafe-intro__door {
+    animation: none;
+  }
+
+  .cafe-intro__doorway {
+    display: none;
+  }
+}
